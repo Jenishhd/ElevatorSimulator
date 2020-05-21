@@ -1,0 +1,78 @@
+ACTIVE MODE
+case DOORS_CLOSING:
+				if(null==elevator.getCurrentDirection()){
+
+					elevator.setCurrentDirection(Elevator.Direction.NOT_MOVING);
+
+					elevator.scheduleModeChange(Elevator.ElevatorState.IDLE_STATE,new IdleMode(),2);
+
+				}
+				else switch (elevator.getCurrentDirection()) {
+
+					case MOVING_DOWN:
+						if(elevator.nextRequestDown(elevator.getCurrentFloor().getNumber())!=-1){
+							elevator.scheduleStateChange(Elevator.ElevatorState.ACCELERATING,2);
+						}
+						else if(elevator.nextRequestUp(elevator.getCurrentFloor().getNumber())!=-1){
+							elevator.setCurrentDirection(MOVING_UP);
+							elevator.scheduleStateChange(Elevator.ElevatorState.DOORS_OPENING,2);
+						}
+						else{
+							elevator.setCurrentDirection(Elevator.Direction.NOT_MOVING);
+							elevator.scheduleModeChange(Elevator.ElevatorState.IDLE_STATE,new IdleMode(),2);
+						}
+						break;
+					case MOVING_UP:
+						if(elevator.nextRequestUp(elevator.getCurrentFloor().getNumber())!=-1){
+							elevator.scheduleStateChange(Elevator.ElevatorState.ACCELERATING,2);
+						}
+						else if(elevator.nextRequestDown(elevator.getCurrentFloor().getNumber())!=-1){
+							elevator.setCurrentDirection(MOVING_DOWN);
+							elevator.scheduleStateChange(Elevator.ElevatorState.DOORS_OPENING,2);
+						}
+						else{
+							elevator.setCurrentDirection(Elevator.Direction.NOT_MOVING);
+							elevator.scheduleModeChange(Elevator.ElevatorState.IDLE_STATE,new IdleMode(),2);
+						}
+						break;
+					default:
+						elevator.setCurrentDirection(Elevator.Direction.NOT_MOVING);
+						elevator.scheduleModeChange(Elevator.ElevatorState.IDLE_STATE,new IdleMode(),2);
+						break;
+
+				}
+				break;
+
+
+
+
+DISPATCH MODE
+case MOVING:
+				if(elevator.getCurrentDirection()==Elevator.Direction.MOVING_UP){
+
+					elevator.setCurrentFloor(elevator.getBuilding().getFloor(elevator.getCurrentFloor().getNumber()+1));
+
+					if(elevator.mWaitingRequest[elevator.getCurrentFloor().getNumber()-1]==true||
+							elevator.getCurrentFloor().directionIsPressed(elevator.getCurrentDirection())){
+
+						elevator.scheduleStateChange(Elevator.ElevatorState.DECELERATING,2);
+						elevator.setCurrentDirection(mDesiredDirection);
+					}
+					else{
+						elevator.scheduleStateChange(Elevator.ElevatorState.MOVING,2);
+					}
+				}
+				else if(elevator.getCurrentDirection()==Elevator.Direction.MOVING_DOWN){
+
+					elevator.setCurrentFloor(elevator.getBuilding().getFloor(elevator.getCurrentFloor().getNumber()-1));
+
+					if(elevator.mWaitingRequest[elevator.getCurrentFloor().getNumber()-1]==true||
+							elevator.getCurrentFloor().directionIsPressed(elevator.getCurrentDirection())){
+						elevator.scheduleStateChange(Elevator.ElevatorState.DECELERATING,2);
+						elevator.setCurrentDirection(mDesiredDirection);
+					}
+					else{
+						elevator.scheduleStateChange(Elevator.ElevatorState.MOVING,2);
+					}
+				}
+				break;
